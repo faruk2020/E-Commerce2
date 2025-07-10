@@ -1126,7 +1126,170 @@
         <p>Chorki - Lighting Solutions for Every Space</p>
       </div>
     </footer>
+<script>
+  // Firebase Configuration and Initialization
+  const firebaseConfig = {
+    apiKey: "AIzaSyAK52h7QPfh7Y3UTBxwnsBKrB-EG6fhvA0",
+    authDomain: "chorki-16848.firebaseapp.com",
+    projectId: "chorki-16848",
+    storageBucket: "chorki-16848.appspot.com",
+    messagingSenderId: "975672326438",
+    appId: "1:975672326438:web:56c332d14ab8f7315729e7",
+    measurementId: "G-MYDLZW1JG8"
+  };
 
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const analytics = firebase.analytics();
+
+  // Enable Firestore persistence
+  db.enablePersistence()
+    .catch((err) => {
+      console.log("Firestore persistence error: ", err);
+    });
+
+  // Products Data
+  const products = [
+    {
+      id: 1,
+      name: "Galaxy Night Light with Bluetooth Speaker",
+      price: 1250,
+      description: "3-in-1 projector with stars, ocean waves & Bluetooth music. Features 21 color effects, remote control, sound activation & timer perfect for dreamy nights and parties.",
+      images: [
+        "https://i.ibb.co/n5jMFhj/B-1.jpg",
+        "https://i.ibb.co/gMddczvt/B-2.jpg",
+        "https://i.ibb.co/67KCV9gq/B-3.jpg",
+        "https://i.ibb.co/C5HnbD2c/B-4.jpg",
+        "https://i.ibb.co/RGWWLZpm/B-5.jpg",
+      ],
+    },
+    // ... (keep your other products as they were)
+  ];
+
+  // DOM Elements and other variables remain the same
+  // ... (keep all your existing DOM element declarations)
+
+  // Cart State
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  // Format price function
+  function formatPrice(price) {
+    return price.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '৳';
+  }
+
+  // Display Products (keep your existing displayProducts function)
+
+  // Show Product Modal (keep your existing showProductModal function)
+
+  // Add to Cart (keep your existing addToCart function)
+
+  // Update Cart (keep your existing updateCart function)
+
+  // Render Cart Items (keep your existing renderCartItems function)
+
+  // Update Quantity (keep your existing updateQuantity function)
+
+  // Remove from Cart (keep your existing removeFromCart function)
+
+  // Checkout (keep your existing checkout function)
+
+  // Submit Order - UPDATED with better error handling
+  function submitOrder(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value;
+    const address = document.getElementById("address").value;
+    const phone = document.getElementById("phone").value;
+    const payment = document.querySelector('input[name="payment"]:checked').value;
+
+    const order = {
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      customer: { name, address, phone },
+      payment,
+      items: [...cart],
+      total: cart.reduce((total, item) => total + item.price * item.quantity, 0),
+      status: "pending"
+    };
+
+    console.log("Submitting order:", order);
+
+    // Add order to Firestore
+    db.collection("orders").doc(order.id).set(order)
+      .then(() => {
+        console.log("Order successfully written to Firestore!");
+        
+        // Also save to localStorage for immediate UI update
+        const orders = JSON.parse(localStorage.getItem("orders")) || [];
+        orders.push(order);
+        localStorage.setItem("orders", JSON.stringify(orders));
+
+        // Clear cart
+        cart = [];
+        updateCart();
+
+        // Show confirmation
+        checkoutBody.style.display = "none";
+        orderConfirmation.style.display = "block";
+        
+        // Track conversion
+        analytics.logEvent('purchase', {
+          transaction_id: order.id,
+          value: order.total,
+          currency: 'BDT'
+        });
+      })
+      .catch((error) => {
+        console.error("Error writing order to Firestore: ", error);
+        alert("Order submission failed. Please check console for details.");
+      });
+  }
+
+  // Admin Login (keep your existing adminLogin function)
+
+  // Show Admin Dashboard - UPDATED to use Firestore
+  function showAdminDashboard() {
+    ordersTableContainer.innerHTML = '<p>Loading orders...</p>';
+    
+    db.collection("orders").orderBy("date", "desc").get()
+      .then((querySnapshot) => {
+        const orders = [];
+        querySnapshot.forEach((doc) => {
+          orders.push(doc.data());
+        });
+        
+        renderOrdersTable(orders);
+        
+        // Also update localStorage
+        localStorage.setItem("orders", JSON.stringify(orders));
+      })
+      .catch((error) => {
+        console.error("Error getting orders: ", error);
+        // Fallback to localStorage if Firestore fails
+        const localOrders = JSON.parse(localStorage.getItem("orders")) || [];
+        if (localOrders.length > 0) {
+          renderOrdersTable(localOrders);
+          alert("Showing cached orders. Could not connect to Firestore.");
+        } else {
+          ordersTableContainer.innerHTML = 
+            '<div class="no-orders">Error loading orders. Please check console.</div>';
+        }
+      });
+  }
+
+  // Render Orders Table (keep your existing renderOrdersTable function)
+
+  // Event Listeners (keep all your existing event listeners)
+
+  // Initialize
+  displayProducts();
+  updateCart();
+
+  // Debugging
+  console.log("Firebase initialized:", firebase.app().name);
+  console.log("Firestore instance:", db);
+</script>
     <script>
       // Firebase Configuration and Initialization
       const firebaseConfig = {
